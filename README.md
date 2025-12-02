@@ -35,4 +35,95 @@ This project is an upgraded version of a previous RPC-based system — now redes
 ---
 
 ## 🧱 Project Structure
+RPC CHAT ROOM/
+│
+├── client.go      # Client-side program
+├── server.go      # RPC server
+└── README.md      # Project documentation
 
+---
+
+## ⚙️ How It Works
+
+### 🔧 1. Server Logic
+- Listens on port **5000**
+- Accepts clients and asks them to send their **ID**
+- Stores each client connection in a global map
+- Every message is sent into a `broadcast` channel
+- A separate goroutine (`broadcaster`) forwards each message to all other clients
+
+### 🔧 2. Client Logic
+- Connects to server
+- Sends its **ID**
+- Receives:
+  - Current active users
+  - Join/leave notifications
+  - Incoming messages
+- Sends typed messages instantly
+
+---
+
+## ▶️ How to Run
+
+### 1️⃣ Start the Server
+
+Open a terminal inside the project folder:
+
+```bash
+go run server.go
+```
+Server will start on port `:5000` and print incoming messages.
+
+### 2️⃣ Run the Client
+
+open another terminal (many as you want):
+
+```bash
+go run client.go
+```
+
+* Enter your **name** when prompted
+* Type messages — they’ll be sent to the server
+* Type `exit` to leave
+
+## 🖼 Example Output
+**Server Terminal:**
+```bash
+Server running on port 5000...
+[SERVER] User 'Ahmed' joined the chat
+[SERVER] User 'Omar' joined the chat
+[SERVER] User 'Ahmed' left the chat
+```
+
+**Client Terminal:**
+```bash
+Enter your ID: Ahmed
+** Current users in chat: Omar, Sarah **
+
+[you] > Hello!
+[Omar]: Hi Ahmed!
+[Sarah]: Welcome Ahmed!
+```
+## 🧩 Technologies Used
+
+* [GoLang](https://go.dev/)
+* Goroutines & Channels
+* Mutex-based concurrency control
+* ANSI color-coded terminal output
+
+##📜 Instructions Applied in This Version
+
+* ✔ Convert RPC system to real-time broadcasting
+* ✔ Notify all clients when a user joins
+* ✔ Notify all clients when a user leaves
+* ✔ Broadcast messages live using goroutines + channels
+* ✔ Prevent sender from receiving their own message
+* ✔ Use Mutex to safely manage shared clients list
+* ✔ No polling, no history — live chat onl
+
+## 👤 Author
+
+**Ahmed Elsafty**
+📧 [elsaftyahmed09@gmail.com]
+
+⭐ Feel free to fork, improve, and star this repo!
