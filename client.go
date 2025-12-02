@@ -16,7 +16,7 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	// Prompt ID
+	// Enter ID
 	fmt.Print("Enter your ID: ")
 	id, _ := reader.ReadString('\n')
 	id = strings.TrimSpace(id)
@@ -24,16 +24,16 @@ func main() {
 
 	serverReader := bufio.NewReader(conn)
 
-	// قراءة أي رسالة أولية من السيرفر (Current users)
+	// First server message (current users)
 	msg, err := serverReader.ReadString('\n')
 	if err == nil {
 		msg = strings.TrimSpace(msg)
 		if msg != "" && strings.HasPrefix(msg, "** Current users") {
-			fmt.Printf("\033[1;34m%s\033[0m\n\n", msg) // system message باللون الأزرق
+			fmt.Printf("\033[1;34m%s\033[0m\n\n", msg)
 		}
 	}
 
-	// Receive loop مستمر للرسائل الجديدة
+	// Receive loop
 	go func() {
 		for {
 			msg, err := serverReader.ReadString('\n')
@@ -45,12 +45,12 @@ func main() {
 			msg = strings.TrimSpace(msg)
 			displayMsg := msg
 
-			if strings.HasPrefix(msg, "** User [") || strings.HasPrefix(msg, "** Current users") { // system message
+			if strings.HasPrefix(msg, "** User [") || strings.HasPrefix(msg, "** Current users") {
 				fmt.Printf("\033[1;34m%s\033[0m\n\n", displayMsg)
-			} else if strings.HasPrefix(msg, "["+id+"]") { // your own message
+			} else if strings.HasPrefix(msg, "["+id+"]") {
 				displayMsg = strings.Replace(msg, "["+id+"]", "[you]", 1)
 				fmt.Printf("\033[1;32m%s\033[0m\n\n", displayMsg)
-			} else { // messages from others
+			} else {
 				fmt.Printf("\033[1;33m%s\033[0m\n\n", displayMsg)
 			}
 
@@ -63,6 +63,14 @@ func main() {
 		fmt.Printf("[you] > ")
 		text, _ := reader.ReadString('\n')
 		text = strings.TrimSpace(text)
+
+		if text == "exit" {
+			fmt.Fprintln(conn, "exit")
+			conn.Close()
+			fmt.Println("You left the chat.")
+			os.Exit(0)
+		}
+
 		if text != "" {
 			fmt.Fprintln(conn, text)
 		}
