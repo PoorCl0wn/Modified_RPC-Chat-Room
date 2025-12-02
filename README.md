@@ -111,7 +111,7 @@ Enter your ID: Ahmed
 * Mutex-based concurrency control
 * ANSI color-coded terminal output
 
-##📜 Instructions Applied in This Version
+## 📜 Instructions Applied in This Version
 
 * ✔ Convert RPC system to real-time broadcasting
 * ✔ Notify all clients when a user joins
