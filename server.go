@@ -22,12 +22,13 @@ var (
 func handleClient(conn net.Conn) {
 	reader := bufio.NewReader(conn)
 
-	// قراءة ID العميل
+	// Read client ID
 	id, _ := reader.ReadString('\n')
 	id = strings.TrimSpace(id)
 
 	clientsMu.Lock()
-	// إرسال قائمة المستخدمين الحاليين للعميل الجديد
+
+	// Send current users
 	if len(clients) > 0 {
 		var currentUsers []string
 		for uid := range clients {
@@ -35,17 +36,16 @@ func handleClient(conn net.Conn) {
 		}
 		fmt.Fprintf(conn, "** Current users in chat: %s **\n", strings.Join(currentUsers, ", "))
 	} else {
-		// لو مفيش حد أصلاً
 		fmt.Fprintf(conn, "** Current users in chat: none **\n")
 	}
 
-	// إضافة العميل الجديد
+	// Add new user
 	clients[id] = conn
 	clientsMu.Unlock()
 
 	fmt.Printf("[SERVER] User '%s' joined the chat\n", id)
 
-	// إرسال رسالة join للآخرين فقط
+	// Notify others
 	clientsMu.Lock()
 	for uid, c := range clients {
 		if uid != id {
@@ -54,7 +54,7 @@ func handleClient(conn net.Conn) {
 	}
 	clientsMu.Unlock()
 
-	// استقبال الرسائل
+	// Message loop
 	for {
 		msg, err := reader.ReadString('\n')
 		if err != nil {
@@ -62,6 +62,12 @@ func handleClient(conn net.Conn) {
 		}
 
 		msg = strings.TrimSpace(msg)
+
+		// Exit command
+		if msg == "exit" {
+			break
+		}
+
 		if msg != "" {
 			broadcast <- BroadcastMsg{
 				Sender:  id,
@@ -70,13 +76,18 @@ func handleClient(conn net.Conn) {
 		}
 	}
 
-	// إزالة العميل عند الخروج
+	// Remove user
 	clientsMu.Lock()
 	delete(clients, id)
 	clientsMu.Unlock()
 
 	fmt.Printf("[SERVER] User '%s' left the chat\n", id)
-	broadcast <- BroadcastMsg{Sender: id, Content: fmt.Sprintf("** User [%s] left the chat **", id)}
+
+	// Notify others
+	broadcast <- BroadcastMsg{
+		Sender:  id,
+		Content: fmt.Sprintf("** User [%s] left the chat **", id),
+	}
 
 	conn.Close()
 }
@@ -86,9 +97,9 @@ func broadcaster() {
 		msg := <-broadcast
 
 		clientsMu.Lock()
-		for id, conn := range clients {
-			if id == msg.Sender {
-				continue // لا نرسل الرسالة إلى صاحبها
+		for uid, conn := range clients {
+			if uid == msg.Sender {
+				continue
 			}
 			fmt.Fprintln(conn, msg.Content)
 		}
